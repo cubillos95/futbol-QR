@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/js/contructo-user.js" type="module"></script>
+    <title>User</title>
+
+</head>
+
+<body>
+
+    <div id="titulo"></div>
+    <section id="menuIRE"></section>
+    <!----- menu Iniciar ,Resumen ,Eliminar-->
+    <br>
+
+    <section id="acionesEliminar"></section>
+    <!----- Eliminar ------>
+    <section id="acionesIniciar"></section>
+    <!----- Iniciar ------>
+
+    <section id="Enjuego">
+        <video id="qr-video" style="display:none;"></video>
+    </section>
+
+    <section id="section1"></section>
+
+
+    <a href="/logout">Cerrar</a>
+</body>
+<!------------------------------------------------------------------------>
+<!------------------------------------------------------------------------>
+
+<script>
+    //*******************************************************************+
+    //leer el perfil de este usuario
+    const perfil = () => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "/perfilData");
+        xhr.onload = () => {
+            const jsonDato = JSON.parse(xhr.response)
+            jsonDato.filter(x => {
+                const deleteOption = document.getElementById(x.user)
+                if (deleteOption) { deleteOption.remove() }
+
+                var add = document.createElement('h1');
+                add.innerText = x.user
+                add.id = x.user
+                document.getElementById("titulo").appendChild(add);
+            })
+
+        }
+        xhr.send()
+    }
+    perfil()
+    //***********************************************************************************
+    //***********************************************************************************
+    //*******************************************************************************
+    //*******************************************************************************
+    //Accion
+    const accion = datoAccion => {
+        const datoEnviar = {
+            campeonato: document.getElementById('h2Campeonato').innerText,
+            equipo: document.getElementById('h2Equipo').innerText,
+            nombre: document.getElementById('h2Name').innerText,
+            cedula: document.getElementById('h2Cedula').innerText,
+            responsable: 'Jairo Agudelo',
+            accion: datoAccion
+
+        }
+        console.log(datoEnviar)
+
+
+        var txt;
+        if (confirm("esta seguro de subir :" + datoEnviar.accion + "\nAl jugador :" + datoEnviar.nombre + "\nCedula :" + datoEnviar.cedula
+            + "\nResponsable :" + datoEnviar.responsable)) {
+            window.location.replace("/form")
+        } else {
+            window.location.replace("/form")
+        }
+
+    }
+
+
+</script>
+
+<!--------------------------------------------------------------------------------->
+<!--------------------------------------------------------------------------------->
+<!--------------------------------------------------------------------------------->
+<!--------------------------------------------------------------------------------->
+<script type="module">
+    //        <input id="show-scan-region" type="checkbox"  checked >
+    //       Iniciar excaneo
+    //       checked=> abierto
+
+    import QrScanner from "/js/qr-scanner.min.js";
+    QrScanner.WORKER_PATH = '/js/qr-scanner-worker.min.js';
+
+    //********************************************************************************************
+    //				Escaneo del qr video y obtencion de cedula
+    const video = document.getElementById('qr-video');
+
+
+
+    const qrScanner = new QrScanner(video, result => {
+
+        //---- sacar el nombre de la tabla y sacar 
+        //---- la cedula
+        console.log(result)
+        qrScanner.stop();
+        const arrayDatos = result.split(',')
+        if (arrayDatos.length == 4) {
+            const sectionBotones = document.getElementById('Enjuego').innerHTML =
+                "<div id='sectionUno'>" +
+                "<h2 id='h2Campeonato'>" + arrayDatos[0] + "</h2>" +
+                "<h2 id='h2Equipo'>" + arrayDatos[1] + "</h2>" +
+                "<h2 id='h2Name'>" + arrayDatos[2] + "</h2>" +
+                "<h2 id='h2Cedula'>" + arrayDatos[3] + "</h2>" +
+                "<button onclick=accion('" + "Gol" + "')>Gol</button><br>" +
+                "<button onclick=accion('" + "Amarrilla" + "')>Amarrilla</button><br>" +
+                "<button onclick=accion('" + "Roja" + "')>Roja</button><br></div>"
+        }
+
+    });
+
+
+    document.getElementById('Enjuego').addEventListener('change', (e) => {
+        const input = e.target;
+        if (input.checked) {
+            qrScanner.start();
+            const label = input.parentNode;
+            label.parentNode.insertBefore(qrScanner.$canvas, label.nextSibling);
+
+            qrScanner.$canvas.style.display = input.checked ? 'block' : 'none';
+        }
+        else {
+
+            qrScanner.stop();
+            qrScanner.$canvas.style.display = input.checked ? 'block' : 'none';
+            if (document.getElementById('sectionUno')) { document.getElementById('sectionUno').remove() }
+        }
+    });
+
+</script>
+
+</html>

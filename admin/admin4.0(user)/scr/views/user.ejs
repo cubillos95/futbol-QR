@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User</title>
+</head>
+
+<body>
+    <section id="uno">
+        <div id="titulo"></div>
+        <select name="listCamp" id="selectCamp"></select>campeonatos
+    </section>
+    <section id="dos">
+        <select name="equipoA" id="equipoA"></select>
+        vs
+        <select name="equipoB" id="equipoB"></select>
+        <br>
+        <button type="submit" id="InicioFin">Iniciar Encuentro</button>
+    </section>
+    <br>
+    <section id="tres">
+        <button type="submit" onclick="eliminarEquipo()">Eliminar Equipo</button>
+
+        <select name="eliminarEquipo" id="eliminarEquipo"></select>
+        <br>
+        <button type="submit" onclick="eliminar()">Eliminar</button>
+
+    </section>
+
+    <br>
+    <a href="/logout">Cerrar</a>
+</body>
+<script>
+    //*******************************************************************
+    var equipos;
+    const listaEliminados = () => {
+        const camp = document.getElementsByTagName('select')['selectCamp'].selectedOptions[0].innerText
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/leerEquiposEliminados", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+
+        xhr.onload = () => {
+            const jsonDatoEquipos = JSON.parse(xhr.response)
+            //*************************************************************************
+            //print elementos de un usuario nombre ,apellido cedula
+            xhr2 = new XMLHttpRequest();
+            xhr2.open("POST", "/consultarEquipos", true);
+            xhr2.setRequestHeader("Content-Type", "application/json");
+
+
+            xhr2.onload = () => {
+                const jsonDato = JSON.parse(xhr2.response)
+                //************************************************************************
+                for (var i = 0; i < jsonDatoEquipos.length; i++) {
+                    jsonDato.splice(jsonDato.findIndex(e => e.name === jsonDatoEquipos[i].equipo), 1)
+                }
+
+                //************************************************************************
+                jsonDato.filter(x => {
+                    if (x.name.indexOf('equipo') == 0) {
+                        var add = document.createElement('option');
+                        add.value = x.name;
+                        add.innerHTML = x.name;
+                        document.getElementById("equipoA").add(add);
+                    }
+                })
+
+                for (var i = 0; i < document.getElementById("equipoA").length; i++) {
+                    //console.log(document.getElementById("equipoA")[i].value)
+                    if (document.getElementsByTagName('select')['equipoA'].selectedOptions[0].innerText != document.getElementById("equipoA")[i].value) {
+                        var add = document.createElement('option');
+                        add.value = document.getElementById("equipoA")[i].value
+                        add.innerHTML = document.getElementById("equipoA")[i].value
+                        document.getElementById("equipoB").add(add);
+                    }
+                }
+            }
+            xhr2.send(JSON.stringify({ campeonato: camp }));
+            //*************************************************************************
+
+        }
+        xhr.send(JSON.stringify({ campeonato: camp }));
+
+    }
+
+    //********************************************************************
+    //lista de equipos en tabla Eliminar
+    const eliminarEquipo = () => {
+        const camp = document.getElementsByTagName('select')['selectCamp'].selectedOptions[0].innerText
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/leerEquiposEliminados", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+
+        xhr.onload = () => {
+            const jsonDatoEquipos = JSON.parse(xhr.response)
+            //*************************************************************************
+            //print elementos de un usuario nombre ,apellido cedula
+            xhr2 = new XMLHttpRequest();
+            xhr2.open("POST", "/consultarEquipos", true);
+            xhr2.setRequestHeader("Content-Type", "application/json");
+
+
+            xhr2.onload = () => {
+                const jsonDato = JSON.parse(xhr2.response)
+                //************************************************************************
+                for (var i = 0; i < jsonDatoEquipos.length; i++) {
+                    jsonDato.splice(jsonDato.findIndex(e => e.name === jsonDatoEquipos[i].equipo), 1)
+                }
+
+                //************************************************************************
+                jsonDato.filter(x => {
+                    if (x.name.indexOf('equipo') == 0) {
+                        var add = document.createElement('option');
+                        add.value = x.name;
+                        add.innerHTML = x.name;
+                        document.getElementById("eliminarEquipo").add(add);
+                    }
+                })
+
+            }
+            xhr2.send(JSON.stringify({ campeonato: camp }));
+            //*************************************************************************
+
+        }
+        xhr.send(JSON.stringify({ campeonato: camp }));
+    }
+    //*******************************************************************
+    //Eliminar equipo
+    const eliminar = () => {
+        const equipo = document.getElementsByTagName('select')['eliminarEquipo'].selectedOptions[0].innerText
+        const camp = document.getElementsByTagName('select')['selectCamp'].selectedOptions[0].innerText
+        if (confirm("esta seguro de Eliminar a :" + equipo)) {
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/eliminarEquipo", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+
+            xhr.onload = () => {
+                alert(xhr.response)
+                window.location.replace("/form")
+            }
+            xhr.send(JSON.stringify({
+                campeonato: camp,
+                equipo: equipo
+            }));
+
+
+        } else {
+            window.location.replace("/form")
+        }
+    }
+    //*******************************************************************+
+    //leer el perfil de este usuario
+    const perfil = () => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "/perfilData");
+        xhr.onload = () => {
+            const jsonDato = JSON.parse(xhr.response)
+            jsonDato.filter(x => {
+                const deleteOption = document.getElementById(x.user)
+                if (deleteOption) { deleteOption.remove() }
+
+                var add = document.createElement('h1');
+                add.innerText = x.user
+                add.id = x.user
+                document.getElementById("titulo").appendChild(add);
+            })
+            jsonDato.filter(x => {
+                var add = document.createElement('option');
+                add.value = x.campeonato;
+                add.innerHTML = x.campeonato;
+                document.getElementById("selectCamp").add(add);
+            })
+        }
+        xhr.send()
+    }
+    perfil()
+    //*******************************************************************+
+    //consultar equipos
+    document.getElementById('selectCamp').addEventListener('click', x => {
+        const camp = document.getElementsByTagName('select')['selectCamp'].selectedOptions[0].innerText
+        listaEliminados()
+    })
+
+</script>
+
+</html>

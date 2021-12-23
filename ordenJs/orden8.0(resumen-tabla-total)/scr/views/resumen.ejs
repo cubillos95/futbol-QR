@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen</title>
+</head>
+<style>
+    .column {
+        float: left;
+        width: 48%;
+        padding: 10px;
+        height: 300px;
+    }
+
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+</style>
+
+<body>
+    <h1>Logo</h1>
+    <button id="PuntacionGeneral">Puntacion General</button><button id="PuntacionExpecifica">Puntacion
+        Especifica</button>
+    <section id="campeonatosResumen">
+        <div id="campeonatoTabla"></div>
+        <div id="campeonatoFechas"></div>
+        <div id="campeonatoEncuentros"></div>
+        <div class="row">
+            <div class="column" id="idEquipoA"></div>
+            <div class="column" id="idEquipoB"></div>
+        </div>
+        <div id="resumenVS"></div>
+
+    </section>
+    <!-- --------------------------------------------------------------------------->
+    <!-- --------------------------------------------------------------------------->
+    <!-- --------------------------------------------------------------------------->
+    <!-- --------------------------------------------------------------------------->
+    <script type="module">
+        import { eliminarMod } from "./js/modulosjs/eliminar.js";
+        import { llamada } from "./js/modulosjs/ajax.js"
+        import { resumenCRUD } from "./js/modulosjs/resumen.js"
+
+        var resumen;
+        //**************************************************************************************
+        window.document.getElementById('PuntacionExpecifica').addEventListener('click', x => {
+            eliminarMod.limpiarHoja()
+            //contruir estructura formulario Campeonato
+            eliminarMod.CrearHtmlListaCampeonato('campeonatoTabla', 'selectCampRes', 'Campeonatos')
+            //llamamos y obtenemos los datos de todos los campeonatos adicional a esto lo
+            //subimos a un selector
+            llamada.solicitudGet('/listaCampeonatos').then(datoLLamada =>
+                eliminarMod.selectorCAmp('selectCampRes', datoLLamada)
+            )
+        })
+
+        //si se realiza alguna Evento por ejemplo click en el selector campeonatosResumen
+
+        window.document.getElementById('campeonatosResumen').addEventListener('click', x => {
+
+            if (x.target.id == 'selectCampRes') {
+                const campeonato = document.getElementsByTagName('select')['selectCampRes'].selectedOptions[0].innerText
+                if (campeonato != "----------") {
+                    //llamado a la tabla conclucion de todos los partidos
+                    llamada.solicitudPos('/EncuentrosResusmen', JSON.stringify({
+                        campeonato: campeonato,
+                    })).then(x => {
+                        resumen = x
+                        //obtenemos el listado de fechas 
+                        const fechas = eliminarMod.calsificacionFecha(x)
+                        //creamos una tabla de fechas
+                        eliminarMod.CrearHtmlListaCampeonato('campeonatoFechas', 'selectCampFec', 'Fechas')
+                        eliminarMod.selectorFechas('selectCampFec', fechas)
+                    })
+                }
+
+            }
+            //************************************************************************************
+            //************************************************************************************
+            //selector fecha , equipoA  , equipoB
+            if (x.target.id == 'selectCampFec') {
+                const fecha = document.getElementsByTagName('select')['selectCampFec'].selectedOptions[0].innerText
+                if (fecha != "----------") {
+                    const ecuentrostabla = eliminarMod.calsificacionEncuentro(resumen, fecha)
+                    //creamos la tabla de ecuentros
+                    eliminarMod.CrearHtmlListaCampeonato('campeonatoEncuentros', 'selectCampEnc', 'Juegos')
+                    eliminarMod.selectorFechas('selectCampEnc', ecuentrostabla)
+                }
+            }
+            //************************************************************************************
+            //************************************************************************************
+            //selector equipo ver
+            if (x.target.id == 'selectCampEnc') {
+                const encuentro = document.getElementsByTagName('select')['selectCampEnc'].selectedOptions[0].innerText
+                if (encuentro != "----------") {
+                    const campeonatoUser = encuentro.split(',')
+                    const fecha = campeonatoUser[0] + ',' + campeonatoUser[1] + ',' + campeonatoUser[2]
+                    const equipoA = campeonatoUser[3]
+                    const equipoB = campeonatoUser[4]
+                    const resumenTablavs = eliminarMod.filtroPartido(fecha, equipoA, equipoB, resumen)
+                    resumenCRUD.contruirResumen(resumenTablavs)
+                }
+            }
+        })
+        //************************************************************************************
+        //************************************************************************************
+        //Busqueda General
+        window.document.getElementById('PuntacionGeneral').addEventListener('click', x => {
+            //limpiamos pantalla
+            eliminarMod.limpiarHoja()
+            //contruir estructura formulario Campeonato
+            eliminarMod.CrearHtmlListaCampeonato('campeonatoTabla', 'selectCampGeneral', 'Campeonatos')
+            //llamamos y obtenemos los datos de todos los campeonatos adicional a esto lo
+            //subimos a un selector
+            llamada.solicitudGet('/listaCampeonatos').then(datoLLamada =>
+                eliminarMod.selectorCAmp('selectCampGeneral', datoLLamada)
+            )
+        })
+
+        window.document.getElementById('campeonatosResumen').addEventListener('click', x => {
+            if (x.target.id == 'selectCampGeneral') {
+                const campeonato = document.getElementsByTagName('select')['selectCampGeneral'].selectedOptions[0].innerText
+                if (campeonato != "----------") {
+                    llamada.solicitudPos('/EncuentrosResusmen', JSON.stringify({
+                        campeonato: campeonato,
+                    })).then(x => {
+                        resumen = x
+                        // console.log(x)  //lista todos los puntos faltas etc
+                        llamada.solicitudPos('/listaCollections', JSON.stringify({ campeonato: campeonato })).then(x => {
+                            const jsonDato = JSON.parse(x)
+                            let equipo = []
+                            jsonDato.filter(x => {
+                                if (x.name.indexOf('equipo') == 0) {
+                                  equipo.push(x)
+                                }
+                            })
+                            const resumentoGeneral = resumenCRUD.tablaGeneral(resumen,equipo)
+                            const dataOrdenado = resumenCRUD.MayorMenor(resumentoGeneral)
+                            eliminarMod.tablaC(dataOrdenado)
+                            
+                        })
+                    })
+
+                }
+            }
+        })
+
+    </script>
+</body>
+
+</html>

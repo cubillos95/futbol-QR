@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>lector Qr</title>
+</head>
+
+<body>
+    <!--------------------------------------------------------------------------------->
+
+    <video id="qr-video" style="display:none;"></video>
+    <label>
+
+
+        <input id="show-scan-region" type="checkbox">
+        Iniciar excaneo
+    </label>
+
+    <!--------------------------------------------------------------------------------->
+    <script type="module">
+
+        import QrScanner from "/js/qr-scanner.min.js";
+        QrScanner.WORKER_PATH = '/js/qr-scanner-worker.min.js';
+
+        //********************************************************************************************
+        //				Escaneo del qr video y obtencion de cedula
+        const video = document.getElementById('qr-video');
+
+
+
+        const qrScanner = new QrScanner(video, result => {
+            
+            //---- sacar el nombre de la tabla y sacar 
+            //---- la cedula
+            console.log(result)
+            qrScanner.stop();
+        });
+
+
+
+
+        document.getElementById('show-scan-region').addEventListener('change', (e) => {
+            qrScanner.start();
+            const input = e.target;
+            const label = input.parentNode;
+            label.parentNode.insertBefore(qrScanner.$canvas, label.nextSibling);
+
+            qrScanner.$canvas.style.display = input.checked ? 'block' : 'none';
+
+        });
+
+    </script>
+    <!--------------------------------------------------------------------------------->
+</body>
+
+</html>

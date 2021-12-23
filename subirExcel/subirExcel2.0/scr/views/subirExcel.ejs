@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <script src="/js/jquery.js"> </script>
+    <script lang="/javascript" src="/js/xlsx.full.min.js"></script>
+    <title>
+        <%= titulo %>
+    </title>
+</head>
+
+<body>
+    <!--      --------------------------------------------------------------------------- -->
+    <input type="text" id="nombreEquipo"> nombre del equipo<br>
+    <input type="file" id="equipoExcel" name="equipoExcel" accept=".xls, .xlsx" />
+    <br>
+    <button onclick="envioPost()" type="submit">Crear</button>
+    <!--      --------------------------------------------------------------------------- -->
+</body>
+<!--      --------------------------------------------------------------------------- -->
+<!--      --------------------------------------------------------------------------- -->
+<script>
+    /*****************************************************************************************/
+    let dataJson
+    //convertir Archivos xls a array json y guardarlo en dataJson
+    $("#equipoExcel").change(function (evt) {
+
+
+        var selectedFile = evt.target.files[0];
+        var reader = new FileReader();
+        reader.onload = function (event) {
+            var data = event.target.result;
+            var workbook = XLSX.read(data, {
+                type: 'binary'
+            });
+            workbook.SheetNames.forEach(function (sheetName) {
+
+                var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+
+                var json_object = JSON.stringify(XL_row_object);
+                dataJson = json_object;
+                console.log(dataJson)
+
+            })
+        };
+
+        reader.onerror = function (event) {
+            console.error("File could not be read! Code " + event.target.error.code);
+        };
+
+        reader.readAsBinaryString(selectedFile);
+    });
+    /*****************************************************************************************/
+    //enviar nombre del equipo + excel del equipo
+    const envioPost = () => {
+        elemento = document.getElementById('nombreEquipo')
+        if (elemento.value) {
+            if (dataJson) {
+
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/upload", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+
+                xhr.onload = () => {
+                    alert(xhr.response);
+                    window.location.replace("/")
+                }
+                const jsonEquipos = { 
+                    'nombre':elemento.value,
+                    'equipos': dataJson }
+
+                xhr.send(JSON.stringify(jsonEquipos));
+            }
+            else { alert('Por favor agregar el archivo excel') }
+        }
+        else { alert('Por favor agregar el nombre del equipo') }
+    }
+
+</script>
+
+</html>

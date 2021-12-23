@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/js/contructo-user.js" type="module"></script>
+    <title>User</title>
+
+</head>
+
+<body>
+
+    <div id="titulo"></div>
+    <section id="menuIRE"></section>
+    <!----- menu Iniciar ,Resumen ,Eliminar-->
+    <br>
+
+    <section id="acionesEliminar"></section>
+    <!----- Eliminar ------>
+    <section id="acionesIniciar"></section>
+    <!----- Iniciar ------>
+
+    <section id="Enjuego">
+        <video id="qr-video" style="display:none;"></video>
+    </section>
+
+    <section id="section1"></section>
+
+
+    <a href="/logout">Cerrar</a>
+</body>
+<!------------------------------------------------------------------------>
+<!------------------------------------------------------------------------>
+
+<script>
+    //*******************************************************************+
+    //leer el perfil de este usuario
+    const perfil = () => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "/perfilData");
+        xhr.onload = () => {
+            const jsonDato = JSON.parse(xhr.response)
+            jsonDato.filter(x => {
+                const deleteOption = document.getElementById(x.user)
+                if (deleteOption) { deleteOption.remove() }
+
+                var add = document.createElement('h1');
+                add.innerText = x.user
+                add.id = x.user
+                document.getElementById("titulo").appendChild(add);
+            })
+
+        }
+        xhr.send()
+    }
+    perfil()
+    //***********************************************************************************
+    //***********************************************************************************
+    //*******************************************************************************
+    //*******************************************************************************
+    //Accion
+    const accion = datoAccion => {
+        const datoEnviar = {
+            campeonato: document.getElementById('h2Campeonato').innerText,
+            equipo: document.getElementById('h2Equipo').innerText,
+            nombre: document.getElementById('h2Name').innerText,
+            cedula: document.getElementById('h2Cedula').innerText,
+            accion: datoAccion
+        }
+
+
+
+
+        if (confirm("esta seguro de subir :" + datoEnviar.accion + "\nAl jugador :" + datoEnviar.nombre + "\nCedula :" + datoEnviar.cedula)) {
+            console.log(datoEnviar)
+            
+
+        } else {
+            window.location.replace("/form")
+        }
+
+    }
+
+
+</script>
+
+<!--------------------------------------------------------------------------------->
+<!--------------------------------------------------------------------------------->
+<!--------------------------------------------------------------------------------->
+<!--------------------------------------------------------------------------------->
+
+
+</html>
